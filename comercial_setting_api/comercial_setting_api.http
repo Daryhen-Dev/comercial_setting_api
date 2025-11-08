@@ -1,0 +1,6 @@
+@comercial_setting_api_HostAddress = http://localhost:5113
+
+GET {{comercial_setting_api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

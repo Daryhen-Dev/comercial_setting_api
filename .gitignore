@@ -35,13 +35,26 @@ ScaffoldingReadMe.txt
 *.nupkg
 # NuGet Symbol Packages
 *.snupkg
+packages/
+*.nuspec
+
+# IDE and tooling
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sln.iml
+
+# Publishing
+[Pp]ublish/
 
 # Others
 ~$*
 *~
 CodeCoverage/
-
-# MSBuild Binary and Structured Log
+*.log
 *.binlog
 
 # MSTest test Results
@@ -52,3 +65,21 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Local configuration
+*.local.json
+appsettings.*.local.json
+secrets.json
+
+# Generated files
+*.cache
+*.pdb
+*.mdb
+*.dbmdl
+*.jfm
+
+# Temporary directories
+[Tt]emp/
+[Tt]mp/
+*.swp
+*.swo
