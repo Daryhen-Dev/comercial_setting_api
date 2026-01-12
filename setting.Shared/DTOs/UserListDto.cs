@@ -1,4 +1,4 @@
-﻿namespace setting.Shared.DTOs.User
+﻿namespace setting.Shared.DTOs
 {
     public class UserListDto
     {

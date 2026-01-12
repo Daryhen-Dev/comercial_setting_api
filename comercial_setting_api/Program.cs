@@ -1,8 +1,9 @@
+using comercial_setting_api.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Data.SqlClient;
+using Microsoft.OpenApi;
 using System.Data;
 using System.Text.Json.Serialization;
-using Microsoft.OpenApi.Models;
-using comercial_setting_api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,25 +19,56 @@ builder.Services.AddControllers()
         opciones.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Comercial Setting API", Version = "v1" });
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header usando el formato: Bearer {token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+    });
+
+    c.AddSecurityRequirement(document =>
+    {
+        OpenApiSecuritySchemeReference? schemeRef = new("Bearer");
+        OpenApiSecurityRequirement? requirement = new()
+        {
+            [schemeRef] = []
+        };
+        return requirement;
+    });
 });
 
 string dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
 builder.Services.AddSingleton<IDbConnection>(_ => new SqlConnection(dbConnectionString));
 
-// Remove AddOpenApi() if present; Swashbuckle covers OpenAPI
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
+
 var app = builder.Build();
 
-// Habilitar Swagger siempre (si prefieres solo en dev, reubica dentro del if)
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Comercial Setting API v1");
-    c.RoutePrefix = "swagger"; // usa "string.Empty" para servir en la raíz "/"
+    c.RoutePrefix = "swagger";
 });
 
 app.UseCors(x => x
@@ -46,7 +78,7 @@ app.UseCors(x => x
     .AllowCredentials());
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
